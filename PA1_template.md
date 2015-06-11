@@ -9,16 +9,16 @@ This assignment makes use of data from a personal activity monitoring device. Th
 
 # Data
 
-The data for this assignment can be downloaded from the course web site:<br>
-<ul>- Dataset: <a href="https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip">Activity monitoring data</a> [52K]</ul>
+The data for this assignment can be downloaded from the course web site:  
+  
+* Dataset: <a href="https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip">Activity monitoring data</a> [52K]
 
-The variables included in this dataset are:
-<ul>
-- steps: Number of steps taking in a 5-minute interval (missing values are coded as NA)
-- date: The date on which the measurement was taken in YYYY-MM-DD format
-- interval: Identifier for the 5-minute interval in which measurement was taken
-</ul>
+The variables included in this dataset are:  
 
+* __steps__: Number of steps taking in a 5-minute interval (missing values are coded as NA)
+* __date__: The date on which the measurement was taken in YYYY-MM-DD format
+* __interval__: Identifier for the 5-minute interval in which measurement was taken
+  
 The dataset is stored in a comma-separated-value (CSV) file and there are a total of 17,568 observations in this dataset.
 <br><br><br><br>
 
@@ -27,7 +27,7 @@ In this section you will find the description of the questions and the explanati
 <br><br>
 
 ## Environment settings
-My first step was to change the locale into English and load some libraries that I found I was going to need. I setted the working directory too, but I found it was pointless to add the code for my directory. If you are going to execute this in your computer, just remember to set the working directory pointing where you had downloaded the data.
+My first step was to change the locale into English and load some libraries that I found I was going to need. I setted the working directory too, but I found it was pointless to add the code for my directory. If you are going to execute this in your computer, just remember to set the working directory pointing where you have downloaded the data.  
 
 
 ```r
@@ -37,7 +37,12 @@ library("dplyr");
 <br><br>
 
 ## Loading and preprocessing the data
-First of all, I loaded the data into a format suitable for the analysis. The original file is unzipped and loaded into _activityData_ variable.
+  
+1. __Load the data__
+  
+2. __Process/transform the data (if necessary) into a format suitable for your analysis__
+  
+I loaded the data into a format suitable for the analysis. The original file is unzipped and loaded into _activityData_ variable.  
 
 
 ```r
@@ -47,24 +52,35 @@ activityData <- read.csv('activity.csv', header = TRUE, sep = ",");
 <br><br>
 
 ## What is mean total number of steps taken per day?
-The questions are:<br><br>
-<ul>- __Calculate the total number of steps taken per day:__ I use the _aggregate_ function to sum the steps grouping by date. The result is saved into _sumStepsByDate_. Then, I change the names of the columns of this variable into a meaningful ones.</ul><br>
-<ul>
-- __Make a histogram of the total number of steps taken each day:__ this is performed using the function hist() over the sum of the steps.
-</ul><br>
-<ul>
-- __Calculate and report the mean and median of the total number of steps taken per day:__ using mean() and median() functions
-.</ul><br>
+
+1. __Calculate the total number of steps taken per day.__  
+
+I use the _aggregate()_ function to sum the steps, grouping by date. The result is saved into _sumStepsByDate_. Then, I change the names of the columns of this variable into a more meaningful ones.  
 
 
 ```r
 sumStepsByDate <- aggregate(activityData$steps, by=activityData["date"], FUN=sum);
 names(sumStepsByDate) <- c("date","sumsteps");
+```
+  
+<br>
+2. __Make a histogram of the total number of steps taken each day__  
+
+This is performed using the function _hist()_ over the sum of the steps.  
+
+
+```r
 hist(sumStepsByDate$sumsteps, main="Histogram of the total number of steps by day", 
-     xlab="total steps by day");
+     xlab="Total steps by day");
 ```
 
-![](./PA1_template_files/figure-html/unnamed-chunk-2-1.png) 
+![](./PA1_template_files/figure-html/unnamed-chunk-3-1.png) 
+  
+<br>
+3. __Calculate and report the mean and median of the total number of steps taken per day__  
+
+Using _mean()_ and _median()_ functions.  
+    
 
 ```r
 mean(sumStepsByDate$sumsteps, na.rm = TRUE);
@@ -81,14 +97,192 @@ median(sumStepsByDate$sumsteps, na.rm = TRUE);
 ```
 ## [1] 10765
 ```
-
+<br><br>
 
 ## What is the average daily activity pattern?
+    
+1. __Make a time series plot of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)__  
 
+I use the _aggregate()_ function to calculate the mean of the steps, grouping by interval. The result is saved into _avgStepsByInterval_. Then, I change the names of the columns of this variable into a meaningful ones. Third, I use the Base plotting system plot function to show the mean of steps taken in each 5-minute interval.  
+
+
+```r
+avgStepsByInterval <- aggregate(activityData$steps, by=activityData["interval"], FUN=mean, na.rm = TRUE);
+names(avgStepsByInterval) <- c("interval","avgsteps");
+plot(avgStepsByInterval$interval, avgStepsByInterval$avgsteps, type="l", 
+     xlab="5-minute interval", ylab="Avg. steps taken", main="Average daily activity pattern");
+```
+
+![](./PA1_template_files/figure-html/unnamed-chunk-5-1.png) 
+  
+<br>
+2. __Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?__  
+
+To find this I use the _max()_ function in the average steps value and do subsetting looking for the corresponding interval.  
+
+
+```r
+avgStepsByInterval$interval[avgStepsByInterval$avgsteps == max(avgStepsByInterval$avgsteps)];
+```
+
+```
+## [1] 835
+```
+<br><br>
 
 
 ## Imputing missing values
 
+Note that there are a number of days/intervals where there are missing values (coded as NA). The presence of missing days may introduce bias into some calculations or summaries of the data.  
+
+1. __Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with NAs)__  
+
+I do this using the function _sum()_ for the steps whose value is NA.  
+
+
+```r
+sum(is.na(activityData$steps));
+```
+
+```
+## [1] 2304
+```
+    
+<br>
+2. __Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.:__  
+
+Taking a look at the data, we can observe that there are 288 different intervals for each date. Also, the NAs are all concentrated in the same eight days and where there is a NA in a specific day, all the values of the day are NAs. I decided to fill the missing values for this days with the average of each corresponding 5-minute interval for all the other days without NAs.  
+
+
+```r
+length(unique(activityData$interval));
+```
+
+```
+## [1] 288
+```
+
+```r
+table(activityData$date[is.na(activityData$steps)]);
+```
+
+```
+## 
+## 2012-10-01 2012-10-02 2012-10-03 2012-10-04 2012-10-05 2012-10-06 
+##        288          0          0          0          0          0 
+## 2012-10-07 2012-10-08 2012-10-09 2012-10-10 2012-10-11 2012-10-12 
+##          0        288          0          0          0          0 
+## 2012-10-13 2012-10-14 2012-10-15 2012-10-16 2012-10-17 2012-10-18 
+##          0          0          0          0          0          0 
+## 2012-10-19 2012-10-20 2012-10-21 2012-10-22 2012-10-23 2012-10-24 
+##          0          0          0          0          0          0 
+## 2012-10-25 2012-10-26 2012-10-27 2012-10-28 2012-10-29 2012-10-30 
+##          0          0          0          0          0          0 
+## 2012-10-31 2012-11-01 2012-11-02 2012-11-03 2012-11-04 2012-11-05 
+##          0        288          0          0        288          0 
+## 2012-11-06 2012-11-07 2012-11-08 2012-11-09 2012-11-10 2012-11-11 
+##          0          0          0        288        288          0 
+## 2012-11-12 2012-11-13 2012-11-14 2012-11-15 2012-11-16 2012-11-17 
+##          0          0        288          0          0          0 
+## 2012-11-18 2012-11-19 2012-11-20 2012-11-21 2012-11-22 2012-11-23 
+##          0          0          0          0          0          0 
+## 2012-11-24 2012-11-25 2012-11-26 2012-11-27 2012-11-28 2012-11-29 
+##          0          0          0          0          0          0 
+## 2012-11-30 
+##        288
+```
+  
+<br>
+3. __Create a new dataset that is equal to the original dataset but with the missing data filled in:__  
+
+The process starts making a copy of the original data into _activityDataNAsFilled_. Then, a copy of the data with NAs in the steps is made in _activityDataNAs_. Using the _merge()_ function, as the common column is the interval, it's possible to add each average value to its corresponding data row. The result is merged into _activityDataNAsFilled_ and ordered using the _arrange()_ function. The NAs values in _steps_ are replaces by the average value and the extra column is deleted using _subset()_.  
+
+
+```r
+activityDataNAsFilled <- activityData;
+activityDataNAs <- activityData[is.na(activityData$steps),];
+activityDataNAs <- merge(activityDataNAs,avgStepsByInterval);
+activityDataNAsFilled <- arrange(merge(activityDataNAsFilled,activityDataNAs, all = TRUE), date, interval);
+activityDataNAsFilled$steps[is.na(activityDataNAsFilled$steps)] <- 
+    activityDataNAsFilled$avgsteps[is.na(activityDataNAsFilled$steps)];
+activityDataNAsFilled <- subset(activityDataNAsFilled, select = c("steps","date","interval"));
+```
+  
+<br>
+4. __Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?__  
+
+From _activityDataNAsFilled_, I use the _aggregate()_ function to calculate the sum of the steps grouping by date. Then, I change the names of the columns into a more meaningful ones. The histogram is made with _hist()_ and _mean()_ and _median()_ functions are used.  
+
+
+```r
+sumStepsByDateNAsFilled <- aggregate(activityDataNAsFilled$steps, by=activityDataNAsFilled["date"], FUN=sum);
+names(sumStepsByDateNAsFilled) <- c("date","sumsteps");
+hist(sumStepsByDateNAsFilled$sumsteps, main="Histogram of the total number of steps by day (NAs filled with avg per interval)", 
+     xlab="Total steps by day");
+```
+
+![](./PA1_template_files/figure-html/unnamed-chunk-10-1.png) 
+
+```r
+mean(sumStepsByDateNAsFilled$sumsteps, na.rm = TRUE);
+```
+
+```
+## [1] 10766.19
+```
+
+```r
+median(sumStepsByDateNAsFilled$sumsteps, na.rm = TRUE);
+```
+
+```
+## [1] 10766.19
+```
+  
+  As I filled the NAs with the mean value, the mean and median values takes the same values than the version ignoring NAs. The frequencies of the histogram are slightly raised, as some values are now more repeated.
+<br><br>
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
+  
+For this part the weekdays() function may be of some help here. Use the dataset with the filled-in missing values for this part.  
+
+1. __Create a new factor variable in the dataset with two levels – “weekday” and “weekend” indicating whether a given date is a weekday or weekend day.__  
+
+This is performed using the _factor()_ function to enconde the weekdays as an ordered factor. Then, the _levels()_ function is used to sort each day into two categories: "weekday" or "weekend".  
+
+
+```r
+activityDataNAsFilled$weekday <- weekdays(as.Date(activityDataNAsFilled$date));
+activityDataNAsFilled$weekday <- factor(weekdays(as.Date(activityDataNAsFilled$date)), levels=c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"), ordered = TRUE);
+levels(activityDataNAsFilled$weekday) <- list(weekday = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday"), weekend = c("Saturday", "Sunday"));
+```
+  
+<br>
+2. __Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). See the README file in the GitHub repository to see an example of what this plot should look like using simulated data.__  
+
+The average by interval and weekday is made using _aggregate()_ and the names are changed again. The layout is divided in two setting _par(mfrow = ...)_ into two rows and one column. The newly created column _weekday_ is used to split the between into the two graphics. Finally, the plots are drawing using the Base plotting system plot function.
+
+
+```r
+avgStepsByIntervalNAsFilled <- aggregate(activityDataNAsFilled$steps, 
+                                         by=activityDataNAsFilled[c("interval","weekday")], FUN=mean, na.rm = TRUE);
+names(avgStepsByIntervalNAsFilled) <- c("interval","weekday","avgsteps");
+
+par(mfrow = c(2,1));
+with(avgStepsByIntervalNAsFilled, {
+    plot(avgStepsByIntervalNAsFilled$interval[avgStepsByIntervalNAsFilled$weekday == "weekday"], 
+         avgStepsByIntervalNAsFilled$avgsteps[avgStepsByIntervalNAsFilled$weekday == "weekday"], type="l", 
+         xlab="5-minute interval", ylab="Avg. steps taken", main="Average weekday activity pattern");
+    
+    plot(avgStepsByIntervalNAsFilled$interval[avgStepsByIntervalNAsFilled$weekday == "weekend"], 
+         avgStepsByIntervalNAsFilled$avgsteps[avgStepsByIntervalNAsFilled$weekday == "weekend"], type="l", 
+         xlab="5-minute interval", ylab="Avg. steps taken", main="Average weekend activity pattern");
+    
+});
+```
+
+![](./PA1_template_files/figure-html/unnamed-chunk-12-1.png) 
+  
+  
+The graphs evidence that in weekdays the steps are more concentrated in some intervals and in weekends the steps are more fairly distributed along the intervals.
