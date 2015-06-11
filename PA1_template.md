@@ -1,10 +1,4 @@
----
-title: 'Reproducible Research: Peer Assessment 1'
-output:
-  html_document:
-    keep_md: yes
-  pdf_document: default
----
+# Reproducible Research: Peer Assessment 1
 ***
   
 # Introduction
@@ -35,7 +29,8 @@ In this section you will find the description of the questions and the explanati
 ## Environment settings
 My first step was to change the locale into English and load some libraries that I found I was going to need. I setted the working directory too, but I found it was pointless to add the code for my directory. If you are going to execute this in your computer, just remember to set the working directory pointing where you had downloaded the data.
 
-```{r "Presettings", message = FALSE, warning = FALSE, results = 'hide'}
+
+```r
 Sys.setlocale("LC_ALL","en_GB.UTF-8");
 library("dplyr");
 ```
@@ -44,7 +39,8 @@ library("dplyr");
 ## Loading and preprocessing the data
 First of all, I loaded the data into a format suitable for the analysis. The original file is unzipped and loaded into _activityData_ variable.
 
-```{r}
+
+```r
 untar('activity.zip');
 activityData <- read.csv('activity.csv', header = TRUE, sep = ",");
 ```
@@ -60,13 +56,30 @@ The questions are:<br><br>
 - __Calculate and report the mean and median of the total number of steps taken per day:__ using mean() and median() functions
 .</ul><br>
 
-```{r}
+
+```r
 sumStepsByDate <- aggregate(activityData$steps, by=activityData["date"], FUN=sum);
 names(sumStepsByDate) <- c("date","sumsteps");
 hist(sumStepsByDate$sumsteps, main="Histogram of the total number of steps by day", 
      xlab="total steps by day");
+```
+
+![](./PA1_template_files/figure-html/unnamed-chunk-2-1.png) 
+
+```r
 mean(sumStepsByDate$sumsteps, na.rm = TRUE);
+```
+
+```
+## [1] 10766.19
+```
+
+```r
 median(sumStepsByDate$sumsteps, na.rm = TRUE);
+```
+
+```
+## [1] 10765
 ```
 
 
