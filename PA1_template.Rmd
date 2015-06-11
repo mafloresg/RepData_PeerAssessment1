@@ -205,4 +205,4 @@ with(avgStepsByIntervalNAsFilled, {
 ```  
   
   
-The graphs evidence that in weekdays the steps are more concentrated in some intervals and in weekends the steps are more fairly distributed along the intervals.
+The graphs evidence that in weekdays the steps are more concentrated in some intervals and in weekends the steps are more fairly distributed along the intervals. Another conclusion it could be that the global number of steps are higher on weekends than in weekdays.

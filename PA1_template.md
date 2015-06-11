@@ -217,7 +217,7 @@ From _activityDataNAsFilled_, I use the _aggregate()_ function to calculate the 
 ```r
 sumStepsByDateNAsFilled <- aggregate(activityDataNAsFilled$steps, by=activityDataNAsFilled["date"], FUN=sum);
 names(sumStepsByDateNAsFilled) <- c("date","sumsteps");
-hist(sumStepsByDateNAsFilled$sumsteps, main="Histogram of the total number of steps by day (NAs filled with avg per interval)", 
+hist(sumStepsByDateNAsFilled$sumsteps, main="Histogram of the total number of steps by day (NAs filled)", 
      xlab="Total steps by day");
 ```
 
@@ -285,4 +285,4 @@ with(avgStepsByIntervalNAsFilled, {
 ![](./PA1_template_files/figure-html/unnamed-chunk-12-1.png) 
   
   
-The graphs evidence that in weekdays the steps are more concentrated in some intervals and in weekends the steps are more fairly distributed along the intervals.
+The graphs evidence that in weekdays the steps are more concentrated in some intervals and in weekends the steps are more fairly distributed along the intervals. Another conclusion it could be that the global number of steps are higher on weekends than in weekdays.
