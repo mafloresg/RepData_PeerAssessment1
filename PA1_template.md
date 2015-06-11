@@ -151,7 +151,7 @@ sum(is.na(activityData$steps));
 <br>
 2. __Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.:__  
 
-Taking a look at the data, we can observe that there are 288 different intervals for each date. Also, the NAs are all concentrated in the same eight days and where there is a NA in a specific day, all the values of the day are NAs. I decided to fill the missing values for this days with the average of each corresponding 5-minute interval for all the other days without NAs.  
+Taking a look at the data, we can observe that there are 288 different intervals for each date. Also, the NAs are all concentrated in the same eight days and when there is a NA in a specific day, all the values of the day are NAs. I decided to fill the missing values for this days with the average of each corresponding 5-minute interval for all the other days without NAs.  
 
 
 ```r
@@ -195,7 +195,7 @@ table(activityData$date[is.na(activityData$steps)]);
 <br>
 3. __Create a new dataset that is equal to the original dataset but with the missing data filled in:__  
 
-The process starts making a copy of the original data into _activityDataNAsFilled_. Then, a copy of the data with NAs in the steps is made in _activityDataNAs_. Using the _merge()_ function, as the common column is the interval, it's possible to add each average value to its corresponding data row. The result is merged into _activityDataNAsFilled_ and ordered using the _arrange()_ function. The NAs values in _steps_ are replaces by the average value and the extra column is deleted using _subset()_.  
+The process starts making a copy of the original data into _activityDataNAsFilled_. Then, a copy of the data with NAs is made in _activityDataNAs_. Using the _merge()_ function it's possible to add each average value to its corresponding data row. The common column for the merge is the interval. The result is merged into _activityDataNAsFilled_ and ordered using the _arrange()_ function. The NAs values in _steps_ are replaced by the average value and the extra column is deleted using _subset()_.  
 
 
 ```r
@@ -224,7 +224,7 @@ hist(sumStepsByDateNAsFilled$sumsteps, main="Histogram of the total number of st
 ![](./PA1_template_files/figure-html/unnamed-chunk-10-1.png) 
 
 ```r
-mean(sumStepsByDateNAsFilled$sumsteps, na.rm = TRUE);
+mean(sumStepsByDateNAsFilled$sumsteps);
 ```
 
 ```
@@ -232,14 +232,14 @@ mean(sumStepsByDateNAsFilled$sumsteps, na.rm = TRUE);
 ```
 
 ```r
-median(sumStepsByDateNAsFilled$sumsteps, na.rm = TRUE);
+median(sumStepsByDateNAsFilled$sumsteps);
 ```
 
 ```
 ## [1] 10766.19
 ```
   
-  As I filled the NAs with the mean value, the mean and median values takes the same values than the version ignoring NAs. The frequencies of the histogram are slightly raised, as some values are now more repeated.
+  As I filled the NAs with the mean value for each interval, the mean takes the same value than the calculation made ignoring NAs. The median value is slightly higher and now it's the same as the mean. The frequencies of the histogram are raised, as some values are now more repeated.
 <br><br>
 
 
@@ -249,7 +249,7 @@ For this part the weekdays() function may be of some help here. Use the dataset 
 
 1. __Create a new factor variable in the dataset with two levels – “weekday” and “weekend” indicating whether a given date is a weekday or weekend day.__  
 
-This is performed using the _factor()_ function to enconde the weekdays as an ordered factor. Then, the _levels()_ function is used to sort each day into two categories: "weekday" or "weekend".  
+This is performed using the _factor()_ function to encode the weekdays as an ordered factor. Then, the _levels()_ function is used to sort each day into two categories: "weekday" or "weekend".  
 
 
 ```r
@@ -261,7 +261,7 @@ levels(activityDataNAsFilled$weekday) <- list(weekday = c("Monday", "Tuesday", "
 <br>
 2. __Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). See the README file in the GitHub repository to see an example of what this plot should look like using simulated data.__  
 
-The average by interval and weekday is made using _aggregate()_ and the names are changed again. The layout is divided in two setting _par(mfrow = ...)_ into two rows and one column. The newly created column _weekday_ is used to split the between into the two graphics. Finally, the plots are drawing using the Base plotting system plot function.
+The average by interval and weekday is made using _aggregate()_ and the names are changed again. The layout is divided in two setting _par(mfrow = ...)_ into two rows and one column. The newly created column _weekday_ is used to split the data between the two graphics. Finally, the plots are drawing using the Base plotting system plot function.
 
 
 ```r
@@ -285,4 +285,4 @@ with(avgStepsByIntervalNAsFilled, {
 ![](./PA1_template_files/figure-html/unnamed-chunk-12-1.png) 
   
   
-The graphs evidence that in weekdays the steps are more concentrated in some intervals and in weekends the steps are more fairly distributed along the intervals. Another conclusion it could be that the global number of steps are higher on weekends than in weekdays.
+The graphs evidence that in weekdays the steps are more concentrated in some intervals and in weekends the steps are more fairly distributed along the intervals.
