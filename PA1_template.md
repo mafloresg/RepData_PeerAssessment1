@@ -38,11 +38,11 @@ library("dplyr");
 
 ## Loading and preprocessing the data
   
-1. __Load the data__
+__1. Load the data__
   
-2. __Process/transform the data (if necessary) into a format suitable for your analysis__
+__2. Process/transform the data (if necessary) into a format suitable for your analysis__
   
-I loaded the data into a format suitable for the analysis. The original file is unzipped and loaded into _activityData_ variable.  
+I load the data into a format suitable for the analysis. The original file is unzipped and loaded into _activityData_ variable.  
 
 
 ```r
@@ -53,7 +53,7 @@ activityData <- read.csv('activity.csv', header = TRUE, sep = ",");
 
 ## What is mean total number of steps taken per day?
 
-1. __Calculate the total number of steps taken per day.__  
+__1. Calculate the total number of steps taken per day.__  
 
 I use the _aggregate()_ function to sum the steps, grouping by date. The result is saved into _sumStepsByDate_. Then, I change the names of the columns of this variable into a more meaningful ones.  
 
@@ -64,7 +64,7 @@ names(sumStepsByDate) <- c("date","sumsteps");
 ```
   
 <br>
-2. __Make a histogram of the total number of steps taken each day__  
+__2. Make a histogram of the total number of steps taken each day__  
 
 This is performed using the function _hist()_ over the sum of the steps.  
 
@@ -77,7 +77,7 @@ hist(sumStepsByDate$sumsteps, main="Histogram of the total number of steps by da
 ![](./PA1_template_files/figure-html/unnamed-chunk-3-1.png) 
   
 <br>
-3. __Calculate and report the mean and median of the total number of steps taken per day__  
+__3. Calculate and report the mean and median of the total number of steps taken per day__  
 
 Using _mean()_ and _median()_ functions.  
     
@@ -101,7 +101,7 @@ median(sumStepsByDate$sumsteps, na.rm = TRUE);
 
 ## What is the average daily activity pattern?
     
-1. __Make a time series plot of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)__  
+__1. Make a time series plot of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)__  
 
 I use the _aggregate()_ function to calculate the mean of the steps, grouping by interval. The result is saved into _avgStepsByInterval_. Then, I change the names of the columns of this variable into a meaningful ones. Third, I use the Base plotting system plot function to show the mean of steps taken in each 5-minute interval.  
 
@@ -109,14 +109,32 @@ I use the _aggregate()_ function to calculate the mean of the steps, grouping by
 ```r
 avgStepsByInterval <- aggregate(activityData$steps, by=activityData["interval"], FUN=mean, na.rm = TRUE);
 names(avgStepsByInterval) <- c("interval","avgsteps");
-plot(avgStepsByInterval$interval, avgStepsByInterval$avgsteps, type="l", 
-     xlab="5-minute interval", ylab="Avg. steps taken", main="Average daily activity pattern");
 ```
 
-![](./PA1_template_files/figure-html/unnamed-chunk-5-1.png) 
+It's interesting to see, as was pointed in the course forum (see <a href="https://class.coursera.org/repdata-015/forum/thread?thread_id=19">this post</a>), that if the intervals are used as the x-axis, the plot system assumes that there are missing values. This is because the intervals are used as numbers, but instead they are the times of the day. So, for the plotting system there is a kind of "gap" between the intervals 55 and 100, 155 and 200, etc, when there is no such a gap, as 55 means 0:55am, 100 is 1:00am, etc. The plotting system treat the interval like a numeric value and fill the gaps, plotting weird intervals like 1:70am and so.  
+
+In order to avoid this, some functions are used in the next chunk code. First, inside the plot function, the values for the x axis are changed to be dates. This is performed using _sprintf()_, to pad with 0 the interval to a 4-digit integer and then _strptime()_ is used, telling to this function that the format is "HHMM". This gives as a result a date-hour list of values, with the date of the execution used for the part day-year-month of the date. This is not really a problem, because I don't want the date part of the result, only the time (hour and minutes). Additionally, in the _plot()_ function we add the _xaxt = n_ parameter, in order to not show the x-axis, avoiding a wrong interpretation of the axis values. The correct data values for the axis are calculated using _range()_ and applied to the plotted axis by _axis.POSIXct()_. The _at_ parameter is a sequence from the first element to the last, in increments of 300, being this increments of 300 seconds (5min * 60s = 300s). This part of the procedure is much like the example in the help page for _axis.POSIXct()_ function.
+
+
+
+```r
+with(avgStepsByInterval, {
+    plot(strptime(sprintf("%04d",as.numeric(avgStepsByInterval$interval)),"%H%M"), 
+         avgStepsByInterval$avgsteps, 
+         type="l", 
+         xlab="5-minute interval", 
+         ylab="Avg. steps taken", 
+         main="Average daily activity pattern",
+         xaxt = "n");
+    axisInterval <- as.POSIXct(range(strptime(sprintf("%04d",as.numeric(avgStepsByInterval$interval)),"%H%M")));
+    axis.POSIXct(1, at = seq(axisInterval[1], axisInterval[2], by = 300), format = "%H:%M");
+}); 
+```
+
+![](./PA1_template_files/figure-html/unnamed-chunk-6-1.png) 
   
 <br>
-2. __Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?__  
+__2. Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?__  
 
 To find this I use the _max()_ function in the average steps value and do subsetting looking for the corresponding interval.  
 
@@ -135,9 +153,9 @@ avgStepsByInterval$interval[avgStepsByInterval$avgsteps == max(avgStepsByInterva
 
 Note that there are a number of days/intervals where there are missing values (coded as NA). The presence of missing days may introduce bias into some calculations or summaries of the data.  
 
-1. __Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with NAs)__  
+__1. Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with NAs)__  
 
-I do this using the function _sum()_ for the steps whose value is NA.  
+I do this using the _sum()_ function to count the steps whose value is NA.  
 
 
 ```r
@@ -149,9 +167,11 @@ sum(is.na(activityData$steps));
 ```
     
 <br>
-2. __Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.:__  
+__2. Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.:__  
 
-Taking a look at the data, we can observe that there are 288 different intervals for each date. Also, the NAs are all concentrated in the same eight days and when there is a NA in a specific day, all the values of the day are NAs. I decided to fill the missing values for this days with the average of each corresponding 5-minute interval for all the other days without NAs.  
+Taking a look at the data, we can observe that there are 288 different intervals for each date, corresponding to (24h * 60m) / 5-minute intervals = 288 intervals per day. So, there are no missing data in the intervals. As is said above, the intervals are the time of the measure (i.e. interval 635 means 6:35am).
+
+Also, it can be observed that the NAs are all concentrated in eight days and more, when there is a NA in a specific day, all the values of the day are NAs. I decided to fill the missing values for this days with the average of each corresponding 5-minute interval, this is, the average value for this intervals over all the other days without NAs.  
 
 
 ```r
@@ -193,7 +213,7 @@ table(activityData$date[is.na(activityData$steps)]);
 ```
   
 <br>
-3. __Create a new dataset that is equal to the original dataset but with the missing data filled in:__  
+__3. Create a new dataset that is equal to the original dataset but with the missing data filled in:__  
 
 The process starts making a copy of the original data into _activityDataNAsFilled_. Then, a copy of the data with NAs is made in _activityDataNAs_. Using the _merge()_ function it's possible to add each average value to its corresponding data row. The common column for the merge is the interval. The result is merged into _activityDataNAsFilled_ and ordered using the _arrange()_ function. The NAs values in _steps_ are replaced by the average value and the extra column is deleted using _subset()_.  
 
@@ -209,7 +229,7 @@ activityDataNAsFilled <- subset(activityDataNAsFilled, select = c("steps","date"
 ```
   
 <br>
-4. __Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?__  
+__4. Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?__  
 
 From _activityDataNAsFilled_, I use the _aggregate()_ function to calculate the sum of the steps grouping by date. Then, I change the names of the columns into a more meaningful ones. The histogram is made with _hist()_ and _mean()_ and _median()_ functions are used.  
 
@@ -221,7 +241,7 @@ hist(sumStepsByDateNAsFilled$sumsteps, main="Histogram of the total number of st
      xlab="Total steps by day");
 ```
 
-![](./PA1_template_files/figure-html/unnamed-chunk-10-1.png) 
+![](./PA1_template_files/figure-html/unnamed-chunk-11-1.png) 
 
 ```r
 mean(sumStepsByDateNAsFilled$sumsteps);
@@ -239,7 +259,7 @@ median(sumStepsByDateNAsFilled$sumsteps);
 ## [1] 10766.19
 ```
   
-  As I filled the NAs with the mean value for each interval, the mean takes the same value than the calculation made ignoring NAs. The median value is slightly higher and now it's the same as the mean. The frequencies of the histogram are raised, as some values are now more repeated.
+  As I filled the NAs with the mean value for each interval, the mean takes the same value than the previous calculation, when ignoring NAs. The median value is slightly higher and now it's the same as the mean. The frequencies of the histogram are raised, as some values are now more repeated.
 <br><br>
 
 
@@ -247,7 +267,7 @@ median(sumStepsByDateNAsFilled$sumsteps);
   
 For this part the weekdays() function may be of some help here. Use the dataset with the filled-in missing values for this part.  
 
-1. __Create a new factor variable in the dataset with two levels – “weekday” and “weekend” indicating whether a given date is a weekday or weekend day.__  
+__1. Create a new factor variable in the dataset with two levels – “weekday” and “weekend” indicating whether a given date is a weekday or weekend day.__  
 
 This is performed using the _factor()_ function to encode the weekdays as an ordered factor. Then, the _levels()_ function is used to sort each day into two categories: "weekday" or "weekend".  
 
@@ -259,9 +279,9 @@ levels(activityDataNAsFilled$weekday) <- list(weekday = c("Monday", "Tuesday", "
 ```
   
 <br>
-2. __Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). See the README file in the GitHub repository to see an example of what this plot should look like using simulated data.__  
+__2. Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). See the README file in the GitHub repository to see an example of what this plot should look like using simulated data.__  
 
-The average by interval and weekday is made using _aggregate()_ and the names are changed again. The layout is divided in two setting _par(mfrow = ...)_ into two rows and one column. The newly created column _weekday_ is used to split the data between the two graphics. Finally, the plots are drawing using the Base plotting system plot function.
+The average by interval and weekday is made using _aggregate()_ and the names are changed. The layout is divided setting _par(mfrow = ...)_ into two rows and one column. The newly created column _weekday_ is used to split the data between the two graphics. Finally, the plots are drawed using the Base plotting system plot function.
 
 
 ```r
@@ -271,18 +291,30 @@ names(avgStepsByIntervalNAsFilled) <- c("interval","weekday","avgsteps");
 
 par(mfrow = c(2,1));
 with(avgStepsByIntervalNAsFilled, {
-    plot(avgStepsByIntervalNAsFilled$interval[avgStepsByIntervalNAsFilled$weekday == "weekday"], 
-         avgStepsByIntervalNAsFilled$avgsteps[avgStepsByIntervalNAsFilled$weekday == "weekday"], type="l", 
-         xlab="5-minute interval", ylab="Avg. steps taken", main="Average weekday activity pattern");
+    x <- strptime(sprintf("%04d",as.numeric(
+            avgStepsByIntervalNAsFilled$interval[avgStepsByIntervalNAsFilled$weekday == "weekday"]
+            )),"%H%M");
+    y <- avgStepsByIntervalNAsFilled$avgsteps[avgStepsByIntervalNAsFilled$weekday == "weekday"];
     
-    plot(avgStepsByIntervalNAsFilled$interval[avgStepsByIntervalNAsFilled$weekday == "weekend"], 
-         avgStepsByIntervalNAsFilled$avgsteps[avgStepsByIntervalNAsFilled$weekday == "weekend"], type="l", 
-         xlab="5-minute interval", ylab="Avg. steps taken", main="Average weekend activity pattern");
+    plot(x, y, type="l", 
+         xlab="5-minute interval", 
+         ylab="Avg. steps taken", 
+         main="Average weekday activity pattern");
+    
+    x <- strptime(sprintf("%04d",as.numeric(
+            avgStepsByIntervalNAsFilled$interval[avgStepsByIntervalNAsFilled$weekday == "weekend"]
+            )),"%H%M");
+    y <- avgStepsByIntervalNAsFilled$avgsteps[avgStepsByIntervalNAsFilled$weekday == "weekend"];
+    
+    plot(x, y, type="l", 
+         xlab="5-minute interval", 
+         ylab="Avg. steps taken", 
+         main="Average weekend activity pattern");
     
 });
 ```
 
-![](./PA1_template_files/figure-html/unnamed-chunk-12-1.png) 
+![](./PA1_template_files/figure-html/unnamed-chunk-13-1.png) 
   
   
-The graphs evidence that in weekdays the steps are more concentrated in some intervals and in weekends the steps are more fairly distributed along the intervals.
+The graphs show that in weekdays the steps are more concentrated in some intervals and in weekends the steps are more fairly distributed along the intervals.
